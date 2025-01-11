@@ -1,14 +1,6 @@
 import { Separator } from "@/components/ui/separator";
 const headingClass = "nav-header mt-10 scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight transition-colors first:mt-0";
 
-export const tags = [
-    "Rust",
-    "Cloudflare Workers",
-    "Serverless",
-    "WebAssembly",
-    "Discord"
-];
-
 const HacScraper = () => {
     return <>
         <h2 className={headingClass} id="title">

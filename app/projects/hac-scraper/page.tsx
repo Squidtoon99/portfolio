@@ -4,14 +4,6 @@ import image from "@/public/images/hac-scraper.png"
 
 const headingClass = "nav-header mt-10 scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight transition-colors first:mt-0";
 
-export const tags = [
-    "Next.js",
-    "Tailwind CSS",
-    "Typescript",
-    "Python",
-    "Flask"
-];
-
 const HacScraper = () => {
     return <>
         <h2 className={headingClass} id="title">

@@ -1,4 +1,4 @@
-import { ChevronDownIcon, LightningBoltIcon, ShadowInnerIcon, StarIcon } from "@radix-ui/react-icons";
+import { ChevronDownIcon, LightningBoltIcon, ShadowInnerIcon, StarIcon, StarFilledIcon } from "@radix-ui/react-icons";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -6,6 +6,27 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLab
 import Link from "next/link";
 import AnimatedLink from "@/components/AnimatedLink";
 const project_data = [
+    {
+        src: "/HackTX-2024-RAAA/PrimeTime",
+        links: [
+            {
+                name: "Devpost",
+                url: "https://devpost.com/software/primetime-285zcm"
+            },
+            {
+                name: "Linkedin Post",
+                url: "https://www.linkedin.com/posts/arjun-s-nayak_hacktx-hacktx-activity-7259788000547479552-IvdN?utm_source=share&utm_medium=member_desktop"
+            }
+        ],
+        awards: [
+            {
+                name: "2nd Intel Track",
+                location: "HackTX 2024",
+                url: "https://devpost.com/software/primetime-285zcm"
+            }
+        ],
+        description: "A web platform designed to optimize time management and boost productivity utilizing local LLMs.",
+    },
     {
         src: "/squidtoon99/bookmark-bot",
         links: [
@@ -31,12 +52,12 @@ const project_data = [
         awards: [
             {
                 name: "Best use of Google Cloud",
-                location: "HackTX",
+                location: "HackTX 2023",
                 url: "https://devpost.com/software/searchit-38n6ps"
             },
             {
                 name: "Novice Hack",
-                location: "HackTX",
+                location: "HackTX 2023",
                 url: "https://devpost.com/software/searchit-38n6ps"
             }
         ]
@@ -55,7 +76,8 @@ const project_data = [
                 location: "HackTAMS",
                 url: "https://devpost.com/software/hacscraper"
             }
-        ]
+        ],
+        description: "Web scraper with automatic grade notifications, class schedules, and powerful analaysis tools."
     }
 ];
 
@@ -65,7 +87,7 @@ async function getData() {
     for (let project of project_data) {
         const res = await fetch(`https://api.github.com/repos${project.src}`);
         const data = await res.json();
-        results.push({ ...project, ...data });
+        results.push({ ...data, ...project });
     }
 
     return results;
@@ -100,7 +122,7 @@ export const Projects = async () => {
         </div>
         <ol className="flex flex-col space-y-4 group/list">
             {projects.map(({ name, src, links, awards, description, language, stargazers_count, updated_at }) => <li key={name}>
-                <Card className="border-transparent hover:border-background/50 lg:bg-transparent lg:hover:bg-primary/5 lg:hover:!opacity-100 lg:group-hover/list:opacity-70 duration-200 ease-in-out transition-all">
+                <Card key={name} className="border-transparent hover:border-background/50 lg:bg-transparent lg:hover:bg-primary/5 lg:hover:!opacity-100 lg:group-hover/list:opacity-70 duration-200 ease-in-out transition-all">
                     <CardHeader className="grid lg:grid-cols-[1fr_110px] items-start gap-4 space-y-0">
                         <div className="space-y-1">
                             <CardTitle>{name}</CardTitle>
@@ -121,12 +143,18 @@ export const Projects = async () => {
                             </CardDescription>
                         </div>
                         <div className="hidden lg:flex items-center space-x-1 rounded-md bg-secondary/30 text-secondary-foreground">
-                            <Link href={`https://github.com${src}`} passHref>
-                                <Button variant="secondary" className="px-3 shadow-none bg-secondary/10">
-                                    <StarIcon className="mr-2 h-4 w-4" />
+                            <a href={`https://github.com${src}`} target="_blank">
+                                <Button variant="secondary" className="px-3 shadow-none bg-secondary/10 group">
+                                    {/* on hover switch between StarIcon and StarFilledicon */}
+                                        
+                                    <span className="mr-2 h-4 w-4">
+                                        <StarIcon className="h-full w-full group-hover:hidden" />
+                                        <StarFilledIcon className="h-full w-full hidden group-hover:block" />
+                                    </span>
+
                                     Star
                                 </Button>
-                            </Link>
+                            </a>
                             <Separator orientation="vertical" className="h-[20px]" />
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>

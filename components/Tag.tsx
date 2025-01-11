@@ -10,11 +10,12 @@ import {
     HoverCardContent,
     HoverCardTrigger,
 } from "@/components/ui/hover-card";
+import { HTMLAttributes, PropsWithRef } from "react";
 
 type Stack = {
     description: string;
     image: string;
-    date: string;
+    date: string | null;
     link: URL | string;
 };
 
@@ -142,12 +143,36 @@ const stack_data: { [key: string]: Stack} = {
     "Microservices": {
         description: "Microservices are a software development technique—a variant of the service-oriented architecture (SOA) architectural style that structures an application as a collection of loosely coupled services.",
         image: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Microservice_architecture.svg/1200px-Microservice_architecture.svg.png",
-        date: "2011",
+        date: null,
         link: "https://en.wikipedia.org/wiki/Microservices"
+    },
+    "Power BI": {
+        description: "Power BI is a business analytics solution that lets you visualize your data and share insights across your organization, or embed them in an app or website.",
+        image: "https://upload.wikimedia.org/wikipedia/en/2/20/Power_BI_logo.svg",
+        date: "2013",
+        link: "https://powerbi.microsoft.com"
+    },
+    "Jupyter Notebooks": {
+        description: "The Jupyter Notebook is an open-source web application that allows you to create and share documents that contain live code, equations, visualizations and narrative text.",
+        image: "https://upload.wikimedia.org/wikipedia/commons/3/38/Jupyter_logo.svg",
+        date: "2014",
+        link: "https://jupyter.org"
+    },
+    "Pandas": {
+        description: "pandas is a fast, powerful, flexible and easy to use open source data analysis and data manipulation library built on top of the Python programming language.",
+        image: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Pandas_logo.svg/1200px-Pandas_logo.svg.png",
+        date: "2008",
+        link: "https://pandas.pydata.org"
+    },
+    "ETL": {
+        description: "Extract, transform, load (ETL) is the general procedure of copying data from one or more sources into a destination system which represents the data differently from the source(s).",
+        image: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/ETL_logo.svg/1200px-ETL_logo.svg.png",
+        date: null,
+        link: "https://en.wikipedia.org/wiki/Extract,_transform,_load"
     }
 }
 
-export function Tag({ name, ...props }: { name: string; }) {
+export function Tag({ name, ...props }: { name: string; className?: string; }){
     if (!(name in stack_data))
         return <div {...props}>n: {name}</div>;
     const { description, image, date, link } = stack_data[name];
@@ -170,12 +195,12 @@ export function Tag({ name, ...props }: { name: string; }) {
                         <p className="text-sm">
                             {description}
                         </p>
-                        <div className="flex items-center pt-2">
+                        {date && <div className="flex items-center pt-2">
                             <CalendarIcon className="mr-2 h-4 w-4" />{" "}
                             <span className="text-xs text-muted-foreground">
                                 Created {date}
                             </span>
-                        </div>
+                        </div>}
                     </div>
                 </div>
             </HoverCardContent>

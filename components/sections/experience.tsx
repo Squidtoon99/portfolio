@@ -22,6 +22,19 @@ const data = [
         tags: ["Grafana", "PostgreSQL", "Telegraf", "Python"]
     },
     {
+        company: "Dell",
+        positions: ["Data Analytics Intern"],
+        date: "2024 Summer",
+        description: "Prototyped a custom dashboard for Dell Contact Center using Jupyter Notebooks to analyze internal telemetry, identify poorly performing knowledge articles, and enhance the efficiency of resolving unique IT issues",
+        links: [
+            {
+                name: "title",
+                url: "https://dell.com"
+            }
+        ],
+        tags: ["Power BI", "Jupyter Notebooks", "Python", "Pandas", "ETL"]
+    },
+    {
         company: "Friskytool",
         positions: ["Founder"],
         date: "2018 — 2022",

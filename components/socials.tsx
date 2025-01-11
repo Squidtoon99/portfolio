@@ -11,7 +11,7 @@ const sources = [
     },
     {
         name: "Github",
-        href: "https://github.com/squidtoon99",
+        href: "https://github.com/Squidtoon99",
         icon: <GitHubLogoIcon className={iconClass} />
     },
     {
