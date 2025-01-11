@@ -4,7 +4,7 @@ import { Socials } from '@/components/socials';
 import { cn } from '@/lib/utils';
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import 'styles/globals.css'
+import '@/styles/globals.css'
 
 const inter = Inter({ subsets: ['latin'], variable: "--font-sans" })
 
@@ -44,10 +44,10 @@ export default function RootLayout({
                   <h1 className="text-4xl inline-flex sm:text-6xl font-bold group-hover:tracking-wide transition-all ease-in-out duration-300">
                     Arjun Nayak
                   </h1>
-                  <h2 className="mt-3 text-lg font-medium tracking-tight text-foreground sm:text-xl">Software Developer at Spyglass</h2>
+                  <h2 className="mt-3 text-lg font-medium tracking-tight text-foreground sm:text-xl">Ex Data Analytics Intern @ DELL</h2>
                   <blockquote className="space-y-4 mt-3 max-w-sm">
                     <p className="text-lg opacity-60 group-hover:tracking-tighter transition-all ease-in-out duration-300">
-                      I bring realtime, beautiful, and actionable data analytics to the web.
+                      I build powerful distributed data systems and realtime analytics dashboards for high performance applications.
                     </p>
                   </blockquote>
                   <div className="p-2 hidden lg:flex">
