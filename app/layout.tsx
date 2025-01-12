@@ -4,6 +4,8 @@ import { Socials } from '@/components/socials';
 import { cn } from '@/lib/utils';
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import { GoogleAnalytics } from "@next/third-parties/google";
+import { Analytics } from "@vercel/analytics/react";
 import '@/styles/globals.css'
 
 const inter = Inter({ subsets: ['latin'], variable: "--font-sans" })
@@ -63,6 +65,8 @@ export default function RootLayout({
           </div>
         </div>
       </body>
+      <Analytics />
+      <GoogleAnalytics gaId="G-90WSW84B7N" />
     </html>
   )
 }
