@@ -21,7 +21,7 @@ export const About = () => {
                     Fast forward to today, I&rsquo;m pursuing a computer science major at <strong>The University of Texas at Dallas.</strong> I&rsquo;ve had the opportunity to build a <AnimatedLink href="/projects/friskytool">chat bot</AnimatedLink>, an <AnimatedLink href="/projects/analytics">analytics dashboard</AnimatedLink>, and create a scalable <Link href="/projects/remote-ide">Remote IDE</Link> system.
                 </p>
                 <p className="mb-4">
-                    Nowadays, I have started development on a realtime analytics dashboard for my school&rsquo;s <Link href="https://dallasformularacing.com">Formula Club</Link>. In my free time I&rsquo;ve built a serverless <Link href="https://bookmarker.squid.pink/">bookmark bot</Link> that pairs the speed of Cloudflare Workers with the security of Rust.   
+                    Nowadays, I have started development on a realtime analytics dashboard for my school&rsquo;s <Link href="https://dallasformularacing.com">Formula Car Club</Link>. In my free time I&rsquo;ve built a serverless <Link href="https://bookmarker.squid.pink/">bookmark bot</Link> that pairs the speed of Cloudflare Workers with the security of Rust.   
                 </p>
                 <p className="mb-4">
                     Outside of computer science, I play ultimate frisbee, skateboard campus hills, and recover from injuries inflicted by the previous two.
