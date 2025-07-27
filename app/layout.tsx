@@ -46,7 +46,7 @@ export default function RootLayout({
                   <h1 className="text-4xl inline-flex sm:text-6xl font-bold group-hover:tracking-wide transition-all ease-in-out duration-300">
                     Arjun Nayak
                   </h1>
-                  <h2 className="mt-3 text-lg font-medium tracking-tight text-foreground sm:text-xl">Ex Data Analytics Intern @ DELL</h2>
+                  <h2 className="mt-3 text-lg font-medium tracking-tight text-foreground sm:text-xl">TIP Intern @ Capital One</h2>
                   <blockquote className="space-y-4 mt-3 max-w-sm">
                     <p className="text-lg opacity-60 group-hover:tracking-tighter transition-all ease-in-out duration-300">
                       I build powerful distributed data systems and realtime analytics dashboards for high performance applications.
