@@ -5,53 +5,51 @@ import { Button } from "@/components/ui/button";
 
 const headingClass = "nav-header mt-10 scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight transition-colors first:mt-0";
 
-const RedditSearch = () => {
+const SquidBotWorker = () => {
   return (
     <>
-      <h1 className={headingClass}>Reddit Search</h1>
+      <h1 className={headingClass}>Squid Bot Worker</h1>
       <Separator className="mb-6" />
 
       <section id="overview">
         <h2 className={headingClass}>Overview</h2>
         <p>
-          Reddit Search is an experiment in vector search that lets users query
-          Reddit images with natural language. It builds an index of posts and
-          uses machine learning embeddings to surface similar content.
+          Squid Bot Worker is a Cloudflare Worker written in Rust that serves as a
+          lightweight API for the main Squid Bot project. Running on the edge keeps
+          responses fast and infrastructure minimal.
         </p>
       </section>
 
       <section id="goals">
         <h2 className={headingClass}>Project Goals</h2>
         <p>
-          The project explores using modern ML tooling to improve how we find
-          images on Reddit, aiming for more relevant results than the platform&apos;s
-          built‑in search.
+          Provide a stateless, globally distributed endpoint for bot commands and
+          webhooks without managing full servers.
         </p>
       </section>
 
       <section id="challenges">
         <h2 className={headingClass}>Challenges</h2>
         <p>
-          Gathering enough data and integrating with Google Vertex AI for vector
-          indexing required careful orchestration and resource management.
+          Adapting typical server logic to the worker environment required careful
+          consideration of execution limits and storage.
         </p>
       </section>
 
       <section id="tech">
         <h2 className={headingClass}>Tech Stack</h2>
         <ul className="list-disc ml-6">
-          <li>Python &amp; Jupyter</li>
-          <li>Google Cloud Vertex AI</li>
-          <li>Reddit API</li>
+          <li>Rust</li>
+          <li>Cloudflare Workers</li>
         </ul>
       </section>
 
       <section id="features">
         <h2 className={headingClass}>Features</h2>
         <ul className="list-disc ml-6">
-          <li>Vector embeddings for image similarity</li>
-          <li>Search notebook demonstrating queries</li>
-          <li>Supports text or image prompts</li>
+          <li>Edge‑hosted API for Squid Bot</li>
+          <li>Fast cold‑start times</li>
+          <li>Zero server maintenance</li>
         </ul>
       </section>
 
@@ -62,7 +60,7 @@ const RedditSearch = () => {
         <CardContent>
           <Button asChild>
             <Link
-              href="https://github.com/Squidtoon99/RedditSearch"
+              href="https://github.com/Squidtoon99/squid-bot-worker"
               target="_blank"
               rel="noreferrer"
             >
@@ -75,4 +73,4 @@ const RedditSearch = () => {
   );
 };
 
-export default RedditSearch;
+export default SquidBotWorker;

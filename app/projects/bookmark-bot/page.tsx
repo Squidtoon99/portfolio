@@ -1,27 +1,80 @@
+import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+
 const headingClass = "nav-header mt-10 scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight transition-colors first:mt-0";
 
-const HacScraper = () => {
-    return <>
-        <h2 className={headingClass} id="title">
-            Bookmark Bot
-        </h2>
-        <Separator className="mb-6" />
-        <p className="mt-4">
-            Bookmark Bot is a Discord bot that allows users to save and organize their bookmarks in a Discord server. It is built with Rust, Cloudflare Workers, and WebAssembly.
-        </p>
+const BookmarkBot = () => {
+  return (
+    <>
+      <h1 className={headingClass}>Bookmark Bot</h1>
+      <Separator className="mb-6" />
 
-
-        <h2 className={headingClass} id="inspiration">Inspiration</h2>
+      <section id="overview">
+        <h2 className={headingClass}>Overview</h2>
         <p>
-            Inspiration for this project came from the need to save and organize bookmarks in a more efficient way. We wanted to create a Discord bot that would allow users to save and organize their bookmarks in a Discord server, making it easier to access and share them with others. Daksh and I have been working on Discord bots for a while now, and we thought this would be a fun and useful project to work on together.
+          Bookmark Bot is a Discord bot that lets users save, tag, and retrieve links
+          directly inside their servers. The bot runs entirely on Cloudflare Workers,
+          keeping infrastructure lightweight and fast.
         </p>
+      </section>
 
-        <h2 className={headingClass} id="implementation">Implementation</h2>
-            Bookmark Bot is a Rust based Discord Bot that compiles down to WebAssembly and runs on the edge with Cloudflare Workers. This allows us to have cheap scalable hosting while also providing 100% uptime to our members without worrying about servcer management.
-        <h2 className={headingClass} id="future-plans">Future Plans</h2>
-        
-    </>;
+      <section id="goals">
+        <h2 className={headingClass}>Project Goals</h2>
+        <p>
+          The project aims to provide an always‑online bookmarking utility for Discord
+          communities while showcasing how serverless technology can power full
+          featured bots.
+        </p>
+      </section>
+
+      <section id="challenges">
+        <h2 className={headingClass}>Challenges</h2>
+        <p>
+          Working within the constraints of Workers and WebAssembly required careful
+          handling of asynchronous Discord interactions and storage in a stateless
+          environment.
+        </p>
+      </section>
+
+      <section id="tech">
+        <h2 className={headingClass}>Tech Stack</h2>
+        <ul className="list-disc ml-6">
+          <li>Rust</li>
+          <li>Cloudflare Workers</li>
+          <li>Discord API</li>
+          <li>WebAssembly</li>
+        </ul>
+      </section>
+
+      <section id="features">
+        <h2 className={headingClass}>Features</h2>
+        <ul className="list-disc ml-6">
+          <li>Slash commands to save and categorize bookmarks</li>
+          <li>Fast edge‑deployed responses with zero maintenance</li>
+          <li>Shared bookmark lists for server members</li>
+        </ul>
+      </section>
+
+      <Card className="mt-10">
+        <CardHeader>
+          <CardTitle>Source Code</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Button asChild>
+            <Link
+              href="https://github.com/Squidtoon99/bookmark-bot"
+              target="_blank"
+              rel="noreferrer"
+            >
+              View on GitHub
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
+    </>
+  );
 };
 
-export default HacScraper;
+export default BookmarkBot;

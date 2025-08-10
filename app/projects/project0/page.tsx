@@ -5,53 +5,49 @@ import { Button } from "@/components/ui/button";
 
 const headingClass = "nav-header mt-10 scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight transition-colors first:mt-0";
 
-const RedditSearch = () => {
+const Project0 = () => {
   return (
     <>
-      <h1 className={headingClass}>Reddit Search</h1>
+      <h1 className={headingClass}>Project0</h1>
       <Separator className="mb-6" />
 
       <section id="overview">
         <h2 className={headingClass}>Overview</h2>
         <p>
-          Reddit Search is an experiment in vector search that lets users query
-          Reddit images with natural language. It builds an index of posts and
-          uses machine learning embeddings to surface similar content.
+          Project0 is a simple static website built during my earliest days of web
+          development. It represents initial experiments with HTML and CSS.
         </p>
       </section>
 
       <section id="goals">
         <h2 className={headingClass}>Project Goals</h2>
         <p>
-          The project explores using modern ML tooling to improve how we find
-          images on Reddit, aiming for more relevant results than the platform&apos;s
-          built‑in search.
+          The project existed primarily as a learning exercise to understand the
+          structure of web pages and how styling works.
         </p>
       </section>
 
       <section id="challenges">
         <h2 className={headingClass}>Challenges</h2>
         <p>
-          Gathering enough data and integrating with Google Vertex AI for vector
-          indexing required careful orchestration and resource management.
+          As my first foray into front‑end code, grasping the relationship between
+          markup and layout proved to be the main hurdle.
         </p>
       </section>
 
       <section id="tech">
         <h2 className={headingClass}>Tech Stack</h2>
         <ul className="list-disc ml-6">
-          <li>Python &amp; Jupyter</li>
-          <li>Google Cloud Vertex AI</li>
-          <li>Reddit API</li>
+          <li>HTML</li>
+          <li>CSS</li>
         </ul>
       </section>
 
       <section id="features">
         <h2 className={headingClass}>Features</h2>
         <ul className="list-disc ml-6">
-          <li>Vector embeddings for image similarity</li>
-          <li>Search notebook demonstrating queries</li>
-          <li>Supports text or image prompts</li>
+          <li>Static multi‑page layout</li>
+          <li>Basic styling and navigation</li>
         </ul>
       </section>
 
@@ -62,7 +58,7 @@ const RedditSearch = () => {
         <CardContent>
           <Button asChild>
             <Link
-              href="https://github.com/Squidtoon99/RedditSearch"
+              href="https://github.com/Squidtoon99/project0"
               target="_blank"
               rel="noreferrer"
             >
@@ -75,4 +71,4 @@ const RedditSearch = () => {
   );
 };
 
-export default RedditSearch;
+export default Project0;
