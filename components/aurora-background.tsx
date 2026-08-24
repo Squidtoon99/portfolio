@@ -99,8 +99,10 @@ export const AuroraBackground = () => {
             canvas.width = Math.max(1, Math.floor(width * dpr));
             canvas.height = Math.max(1, Math.floor(height * dpr));
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-            lw = Math.max(80, Math.min(210, Math.floor(width / 6)));
-            lh = Math.max(60, Math.min(150, Math.floor(height / 6)));
+            // More horizontal resolution so the vertical rays survive upscaling;
+            // fewer rows is fine because the rays run vertically.
+            lw = Math.max(120, Math.min(420, Math.floor(width / 3)));
+            lh = Math.max(70, Math.min(120, Math.floor(height / 7)));
             off.width = lw;
             off.height = lh;
             img = offCtx.createImageData(lw, lh);
@@ -130,7 +132,7 @@ export const AuroraBackground = () => {
                         Math.sin(Y * 3.0 + st + layer.phase) * 0.16 +
                         (fbm(Y * 1.6 + layer.phase * 3.0, st * 0.9) - 0.5) * 0.55;
                     cxRow[py * L + i] = layer.base + snake;
-                    wRow[py * L + i] = 0.085 + 0.06 * fbm(Y * 3.0 + layer.phase, st * 0.7);
+                    wRow[py * L + i] = 0.07 + 0.055 * fbm(Y * 3.0 + layer.phase, st * 0.7);
                 }
             }
 
@@ -141,17 +143,21 @@ export const AuroraBackground = () => {
                     const X = (px / lw - 0.5) * aspect;
                     let inten = 0;
                     if (fade > 0.001) {
-                        // Vertical "pleats" so the curtain has ray structure.
-                        const pleat = 0.55 + 0.45 * fbm(X * 3.2 + t * 0.25, Y * 4.0 - t * 0.5);
                         for (let i = 0; i < L; i++) {
                             const dx = (X - cxRow[py * L + i]) / wRow[py * L + i];
-                            const band = Math.exp(-dx * dx);
-                            inten += band * LAYERS[i].weight;
+                            inten += Math.exp(-dx * dx) * LAYERS[i].weight;
                         }
-                        inten *= fade * pleat;
+                        // Vertical rays: higher-frequency, mostly along x, drifting
+                        // slowly and bending gently with height, with contrast so
+                        // bright pleats separate with darker gaps.
+                        const rn =
+                            valueNoise(X * 9.0 + t * 0.15, Y * 0.8) * 0.6 +
+                            valueNoise(X * 19.0 - t * 0.22, Y * 1.4 + 3.0) * 0.4;
+                        const ray = Math.pow(0.26 + 0.74 * rn, 1.6);
+                        inten *= fade * ray;
                     }
 
-                    const a = 1 - Math.exp(-inten * 1.7);
+                    const a = 1 - Math.exp(-inten * 2.3);
                     const idx = (py * lw + px) * 4;
                     data[idx] = 232;
                     data[idx + 1] = 244;
