@@ -5,38 +5,23 @@ import { useEffect, useRef } from "react";
 /**
  * Canvas "white aurora borealis" backdrop.
  *
- * Uses the classic shader technique for auroras, adapted to 2D canvas:
- *   - Several curtain layers whose horizontal centre "snakes" as a function of
- *     height + time (summed sines + fBm value noise), so the ribbons flow.
- *   - Each curtain is a Gaussian band across x: a bright core that fades softly
- *     to haze on both sides (haze -> line -> haze). The band width varies along
- *     height, so some stretches read as a crisp ribbon and others as soft haze.
- *   - A vertical falloff (bright ceiling near the top, exponential fade down)
- *     plus fBm "pleats" give vertical structure.
- *   - Layers are summed (additive) and tone-mapped to white with a faint cool
- *     tint.
+ * A SINGLE soft aurora ribbon that slowly drifts across the screen. Its centre
+ * is a horizontal sweep (so the whole ribbon travels left/right) plus a vertical
+ * "snake" (summed sine + fBm) so it folds as it moves. The ribbon is a Gaussian
+ * band across x (bright-ish core fading to haze at the edges) carrying fine
+ * vertical rays/"lines" sampled in the ribbon's own moving frame, so the sense
+ * of lines travels with it. It is full opacity at the top and gradients to
+ * nothing toward the bottom.
  *
  * For smoothness + performance the field is computed on a small offscreen buffer
- * and upscaled with bilinear smoothing (which doubles as the blur). All motion
- * uses small, constant speeds so it stays slow and steady. Fixed and behind all
- * content; renders a single static frame under prefers-reduced-motion.
+ * and upscaled with bilinear smoothing (which doubles as the blur). Motion uses
+ * small, constant speeds so it stays slow and steady; a single static frame is
+ * drawn under prefers-reduced-motion.
  */
 
-// fadeEnd controls how far down the layer survives before dissolving to nothing
-// (full opacity at the top, 0 by Y = fadeEnd). Varying it per layer makes the
-// curtains fade out at different "speeds"/heights.
-type Layer = { base: number; weight: number; speed: number; phase: number; wScale: number; fadeEnd: number };
-
-const LAYERS: Layer[] = [
-    { base: -0.52, weight: 0.7, speed: 0.4, phase: 0.0, wScale: 0.95, fadeEnd: 0.55 },
-    { base: -0.3, weight: 0.95, speed: 0.48, phase: 1.1, wScale: 0.7, fadeEnd: 0.92 },
-    { base: -0.08, weight: 1.0, speed: 0.44, phase: 2.4, wScale: 0.6, fadeEnd: 0.68 },
-    { base: 0.14, weight: 1.0, speed: 0.5, phase: 3.5, wScale: 0.65, fadeEnd: 1.0 },
-    { base: 0.34, weight: 0.9, speed: 0.46, phase: 4.6, wScale: 0.75, fadeEnd: 0.6 },
-    { base: 0.54, weight: 0.7, speed: 0.52, phase: 5.7, wScale: 0.95, fadeEnd: 0.8 },
-];
-
+const FADE_END = 0.85; // ribbon dissolves to nothing by ~85% down the screen
 const FADE_CURVE = 1.25;
+const GAIN = 1.55; // keep the ribbon soft, not overpowering
 
 function hash2(x: number, y: number): number {
     const n = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
@@ -101,8 +86,7 @@ export const AuroraBackground = () => {
             canvas.width = Math.max(1, Math.floor(width * dpr));
             canvas.height = Math.max(1, Math.floor(height * dpr));
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-            // More horizontal resolution so the vertical rays survive upscaling;
-            // fewer rows is fine because the rays run vertically.
+            // More horizontal resolution so the vertical rays survive upscaling.
             lw = Math.max(120, Math.min(420, Math.floor(width / 3)));
             lh = Math.max(70, Math.min(120, Math.floor(height / 7)));
             off.width = lw;
@@ -118,65 +102,51 @@ export const AuroraBackground = () => {
             const aspect = lw / lh;
             const data = img.data;
 
-            // Per-row curtain centre / width / vertical fade (cheap: depends on y).
-            const L = LAYERS.length;
-            const cxRow = new Float32Array(lh * L);
-            const wRow = new Float32Array(lh * L);
-            const fadeRow = new Float32Array(lh * L);
-            const ambFade = new Float32Array(lh);
-            const rowMax = new Float32Array(lh);
+            // The whole ribbon sweeps horizontally across the screen.
+            const sweep = Math.sin(t * 0.07) * 0.55 + Math.sin(t * 0.031 + 1.3) * 0.12;
+
+            // Per-row ribbon centre / width / vertical fade.
+            const cxRow = new Float32Array(lh);
+            const wRow = new Float32Array(lh);
+            const fadeRow = new Float32Array(lh);
             for (let py = 0; py < lh; py++) {
                 const Y = py / lh;
-                let mx = 0;
-                for (let i = 0; i < L; i++) {
-                    const layer = LAYERS[i];
-                    const st = t * layer.speed;
-                    const snake =
-                        Math.sin(Y * 3.0 + st + layer.phase) * 0.16 +
-                        (fbm(Y * 1.6 + layer.phase * 3.0, st * 0.9) - 0.5) * 0.55;
-                    cxRow[py * L + i] = layer.base + snake;
-                    wRow[py * L + i] = (0.055 + 0.05 * fbm(Y * 3.0 + layer.phase, st * 0.7)) * layer.wScale;
-                    // Full opacity at the top, dissolving to nothing at Y = fadeEnd.
-                    const f = Math.pow(Math.max(0, 1 - Y / layer.fadeEnd), FADE_CURVE);
-                    fadeRow[py * L + i] = f;
-                    if (f > mx) mx = f;
-                }
-                // The ambient haze fades on its own, gentler curve.
-                ambFade[py] = Math.pow(Math.max(0, 1 - Y / 0.78), 1.15);
-                if (ambFade[py] > mx) mx = ambFade[py];
-                rowMax[py] = mx;
+                const snake =
+                    Math.sin(Y * 2.6 + t * 0.35) * 0.16 + (fbm(Y * 1.5 + 4.0, t * 0.35) - 0.5) * 0.5;
+                cxRow[py] = sweep + snake;
+                wRow[py] = 0.1 + 0.05 * fbm(Y * 3.0, t * 0.5);
+                // Full opacity at the top, dissolving to nothing by FADE_END.
+                fadeRow[py] = Math.pow(Math.max(0, 1 - Y / FADE_END), FADE_CURVE);
             }
 
             for (let py = 0; py < lh; py++) {
                 const Y = py / lh;
-                const alive = rowMax[py] > 0.002;
+                const fade = fadeRow[py];
+                const cx = cxRow[py];
+                const w = wRow[py];
+                const alive = fade > 0.002;
                 for (let px = 0; px < lw; px++) {
                     const X = (px / lw - 0.5) * aspect;
                     let inten = 0;
                     if (alive) {
-                        for (let i = 0; i < L; i++) {
-                            const dx = (X - cxRow[py * L + i]) / wRow[py * L + i];
-                            inten += Math.exp(-dx * dx) * LAYERS[i].weight * fadeRow[py * L + i];
+                        const dx = (X - cx) / w;
+                        const band = Math.exp(-dx * dx);
+                        if (band > 0.004) {
+                            // Fine vertical rays sampled in the ribbon's own moving
+                            // frame, so the "lines" travel with the ribbon.
+                            const lx = X - cx;
+                            const rn =
+                                valueNoise(lx * 34.0 + t * 0.08, Y * 0.8) * 0.55 +
+                                valueNoise(lx * 66.0 - t * 0.13, Y * 1.4 + 3.0) * 0.3 +
+                                valueNoise(lx * 104.0 + 7.0, Y * 2.0) * 0.15;
+                            const ray = Math.pow(0.32 + 0.68 * rn, 1.4);
+                            inten = band * fade * ray;
                         }
-                        // Broad ambient haze across the centre so the rays sit on a
-                        // continuous glow rather than isolated columns.
-                        const ax = X * 0.85;
-                        inten += Math.exp(-ax * ax) * 0.4 * ambFade[py];
-                        // Fine vertical rays: multi-octave, mostly along x, drifting
-                        // slowly and bending gently with height, with contrast so
-                        // bright pleats separate with darker gaps.
-                        const rn =
-                            valueNoise(X * 12.0 + t * 0.07, Y * 0.7) * 0.5 +
-                            valueNoise(X * 26.0 - t * 0.11, Y * 1.3 + 3.0) * 0.32 +
-                            valueNoise(X * 46.0 + 7.0, Y * 2.0) * 0.18;
-                        const ray = Math.pow(0.3 + 0.7 * rn, 1.35);
-                        inten *= ray;
                     }
 
-                    const a = 1 - Math.exp(-inten * 2.5);
+                    const a = 1 - Math.exp(-inten * GAIN);
                     const idx = (py * lw + px) * 4;
-                    // Near-white with a faint cool tint up top drifting to a hint of
-                    // green lower down (subtle spectral realism).
+                    // Near-white with a faint cool tint drifting to a hint of green.
                     data[idx] = 226 - 6 * Y;
                     data[idx + 1] = 247;
                     data[idx + 2] = 255 - 18 * Y;
