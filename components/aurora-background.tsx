@@ -18,8 +18,8 @@ import { useEffect, useRef } from "react";
  * honors prefers-reduced-motion by rendering a single static frame.
  */
 
-const CONTROL_POINTS = 7;
-const SAMPLES = 220;
+const CONTROL_POINTS = 8;
+const SAMPLES = 240;
 const FOCAL = 600;
 
 type Control = {
@@ -99,9 +99,9 @@ export const AuroraBackground = () => {
             // Ridge control points in a fake-3D space (screen x/y + depth z).
             const pts = controls.map((c) => {
                 const spread = (c.baseX - 0.5) * width * 1.15;
-                const jitterX = smoothNoise(t, c.phaseX, c.speedX) * width * 0.05;
-                const jitterY = smoothNoise(t, c.phaseY, c.speedY) * height * 0.05;
-                const depth = smoothNoise(t, c.phaseZ, c.speedZ) * 240;
+                const jitterX = smoothNoise(t, c.phaseX, c.speedX) * width * 0.065;
+                const jitterY = smoothNoise(t, c.phaseY, c.speedY) * height * 0.045;
+                const depth = smoothNoise(t, c.phaseZ, c.speedZ) * 300;
                 return { x: cx + spread + jitterX, y: ridgeY + jitterY, z: depth, tint: c.tint };
             });
 
@@ -127,10 +127,10 @@ export const AuroraBackground = () => {
                 const py = ry;
 
                 // Per-beam shimmer + a little length variation.
-                const shimmer = 0.55 + 0.45 * Math.sin(f * 46 + t * 1.4 + tint * 6.283);
-                const length = height * (0.34 + 0.16 * scale) * (0.85 + 0.15 * Math.sin(f * 22 - t));
-                const lineWidth = Math.max(0.5, 2.1 * scale);
-                const alpha = 0.14 * scale * shimmer;
+                const shimmer = 0.6 + 0.4 * Math.sin(f * 46 + t * 1.4 + tint * 6.283);
+                const length = height * (0.4 + 0.2 * scale) * (0.85 + 0.15 * Math.sin(f * 22 - t));
+                const lineWidth = Math.max(0.5, 2.4 * scale);
+                const alpha = 0.19 * scale * shimmer;
 
                 const green = 200 + Math.round(40 * tint);
                 const blue = 235 + Math.round(20 * (1 - tint));

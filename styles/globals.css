@@ -112,9 +112,9 @@ html{
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(58% 30% at 50% 3%, rgba(236, 245, 255, 0.6), rgba(214, 233, 255, 0.2) 46%, rgba(255, 255, 255, 0) 72%),
-    radial-gradient(30% 16% at 41% 2%, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 70%),
-    radial-gradient(26% 16% at 62% 3%, rgba(214, 245, 226, 0.32), rgba(255, 255, 255, 0) 72%);
+    radial-gradient(60% 32% at 50% 2%, rgba(236, 245, 255, 0.72), rgba(214, 233, 255, 0.24) 46%, rgba(255, 255, 255, 0) 72%),
+    radial-gradient(32% 18% at 41% 1%, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0) 70%),
+    radial-gradient(28% 18% at 62% 2%, rgba(214, 245, 226, 0.36), rgba(255, 255, 255, 0) 72%);
   mix-blend-mode: screen;
   filter: blur(10px);
   animation: aurora-glow-pulse 22s ease-in-out infinite alternate;
