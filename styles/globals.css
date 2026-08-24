@@ -104,92 +104,122 @@ html{
 
 .aurora-root {
   background:
-    radial-gradient(130% 90% at 50% -15%, #0d1730 0%, #080c1c 48%, #04050e 80%, #020207 100%);
+    radial-gradient(130% 95% at 50% -18%, #0e1a34 0%, #0a1226 42%, #05070f 78%, #020207 100%);
 }
 
-/* Real-footage backdrop (public/aurora-bg.mp4 by default) */
-.aurora-video {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0.95;
-}
-
-/* Dark scrim over the footage so white foreground text stays legible */
-.aurora-video-scrim {
+/* Bright hazy "source" the light pillars fall from, near top-centre */
+.aurora-glow {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(3, 5, 14, 0.5) 0%, rgba(3, 5, 14, 0.34) 42%, rgba(2, 3, 10, 0.72) 100%),
-    radial-gradient(125% 95% at 50% 16%, transparent 38%, rgba(2, 3, 10, 0.62) 100%);
+    radial-gradient(58% 30% at 50% 3%, rgba(236, 245, 255, 0.6), rgba(214, 233, 255, 0.2) 46%, rgba(255, 255, 255, 0) 72%),
+    radial-gradient(30% 16% at 41% 2%, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 70%),
+    radial-gradient(26% 16% at 62% 3%, rgba(214, 245, 226, 0.32), rgba(255, 255, 255, 0) 72%);
+  mix-blend-mode: screen;
+  filter: blur(10px);
+  animation: aurora-glow-pulse 22s ease-in-out infinite alternate;
 }
 
-/* 3D perspective scene so the aurora curtain appears to move through space */
+@keyframes aurora-glow-pulse {
+  0%   { opacity: 0.75; transform: translateX(-1.5%) scale(1); }
+  100% { opacity: 1;    transform: translateX(2%)    scale(1.06); }
+}
+
+/* 3D perspective scene so the pillars appear to move through space */
 .aurora-scene {
   position: absolute;
   inset: 0;
-  perspective: 1100px;
-  perspective-origin: 50% 34%;
+  perspective: 1000px;
+  perspective-origin: 50% 4%;
+  transform-style: preserve-3d;
 }
 
-/* Shimmering, waving white aurora curtain */
-.aurora-lines {
+/* Light-pillar curtains: soft vertical striations masked to hang & fade down */
+.aurora-curtain {
   position: absolute;
-  top: -8%;
-  left: -8%;
-  width: 116%;
-  height: 116%;
-  opacity: 0.55;
+  inset: -25% -12% -12% -12%;
   mix-blend-mode: screen;
   transform-style: preserve-3d;
-  animation: aurora-rotate-3d 54s ease-in-out infinite alternate;
+  will-change: transform, background-position, opacity;
+  -webkit-mask-image: radial-gradient(80% 84% at 50% 3%, #000 0%, rgba(0, 0, 0, 0.85) 30%, rgba(0, 0, 0, 0) 74%);
+  mask-image: radial-gradient(80% 84% at 50% 3%, #000 0%, rgba(0, 0, 0, 0.85) 30%, rgba(0, 0, 0, 0) 74%);
 }
 
-/* Slow tilt/turn under perspective -> depth and 3D movement */
-@keyframes aurora-rotate-3d {
-  0%   { transform: rotateY(-16deg) rotateX(7deg)  translateZ(-60px); }
-  50%  { transform: rotateY(6deg)   rotateX(-2deg) translateZ(40px); }
-  100% { transform: rotateY(18deg)  rotateX(6deg)  translateZ(-30px); }
+.aurora-curtain-far {
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0px,
+    rgba(255, 255, 255, 0) 5px,
+    rgba(210, 230, 255, 0.3) 7px,
+    rgba(255, 255, 255, 0) 9px,
+    rgba(255, 255, 255, 0) 15px
+  );
+  filter: blur(2px);
+  opacity: 0.55;
+  animation: aurora-drift-far 40s ease-in-out infinite alternate;
 }
 
-.aurora-lines-group {
-  animation: aurora-sway 66s ease-in-out infinite alternate;
-  transform-origin: 50% 42%;
+.aurora-curtain-mid {
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0px,
+    rgba(255, 255, 255, 0) 9px,
+    rgba(233, 244, 255, 0.42) 12px,
+    rgba(255, 255, 255, 0) 15px,
+    rgba(255, 255, 255, 0) 26px
+  );
+  filter: blur(1.2px);
+  opacity: 0.7;
+  animation: aurora-drift-mid 32s ease-in-out infinite alternate;
 }
 
-@keyframes aurora-sway {
-  0%   { transform: translate3d(-1.5%, 0, 0) rotate(-1.5deg); }
-  100% { transform: translate3d(1.5%, 0, 0)  rotate(1.5deg); }
+.aurora-curtain-near {
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0px,
+    rgba(255, 255, 255, 0) 18px,
+    rgba(255, 255, 255, 0.6) 21px,
+    rgba(210, 235, 255, 0.15) 24px,
+    rgba(255, 255, 255, 0) 27px,
+    rgba(255, 255, 255, 0) 46px
+  );
+  filter: blur(0.6px);
+  opacity: 0.8;
+  animation: aurora-drift-near 26s ease-in-out infinite alternate;
 }
 
-/* Per-ribbon horizontal drift at staggered speeds -> parallax between curtains */
-.aurora-ribbon {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation-name: aurora-ribbon-drift;
-  animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
-  animation-direction: alternate;
+@keyframes aurora-drift-far {
+  0%   { transform: rotateX(8deg) translateZ(-120px) translateX(-2%); background-position-x: 0px;  opacity: 0.4; }
+  100% { transform: rotateX(8deg) translateZ(-120px) translateX(3%);  background-position-x: 40px; opacity: 0.65; }
 }
 
-@keyframes aurora-ribbon-drift {
-  0%   { transform: translateX(-9px) scale(0.98); }
-  100% { transform: translateX(11px) scale(1.03); }
+@keyframes aurora-drift-mid {
+  0%   { transform: rotateX(5deg) translateZ(-40px) translateX(2%);  background-position-x: 0px;   opacity: 0.55; }
+  100% { transform: rotateX(5deg) translateZ(-40px) translateX(-3%); background-position-x: -60px; opacity: 0.85; }
 }
 
-/* Hazy white glow between the ribbons */
+@keyframes aurora-drift-near {
+  0%   { transform: rotateX(3deg) translateZ(40px) translateX(-3%); background-position-x: 0px;  opacity: 0.6; }
+  100% { transform: rotateX(3deg) translateZ(40px) translateX(4%);  background-position-x: 70px; opacity: 0.95; }
+}
+
+/* Hazy white bloom sitting among the pillars */
 .aurora-haze {
-  transform-box: fill-box;
-  transform-origin: center;
+  position: absolute;
+  left: 50%;
+  top: 1%;
+  width: 62%;
+  height: 46%;
+  transform: translateX(-50%);
+  background: radial-gradient(50% 60% at 50% 22%, rgba(255, 255, 255, 0.26), rgba(219, 234, 254, 0.1) 52%, rgba(255, 255, 255, 0) 78%);
+  filter: blur(26px);
   mix-blend-mode: screen;
-  animation: aurora-haze 34s ease-in-out infinite alternate;
+  animation: aurora-haze 30s ease-in-out infinite alternate;
 }
 
 @keyframes aurora-haze {
-  0%   { opacity: 0.6;  transform: scale(1)    translateX(-2%); }
-  100% { opacity: 0.95; transform: scale(1.14) translateX(3%); }
+  0%   { opacity: 0.55; transform: translateX(-52%) scale(1); }
+  100% { opacity: 0.9;  transform: translateX(-47%) scale(1.12); }
 }
 
 /* Faint starfield for night-sky depth */
@@ -215,11 +245,9 @@ html{
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .aurora-lines,
-  .aurora-lines-group,
-  .aurora-ribbon,
-  .aurora-haze,
-  .aurora-lines-group * {
+  .aurora-glow,
+  .aurora-curtain,
+  .aurora-haze {
     animation: none;
   }
 }
