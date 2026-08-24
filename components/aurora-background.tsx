@@ -22,13 +22,15 @@ import { useEffect, useRef } from "react";
  * content; renders a single static frame under prefers-reduced-motion.
  */
 
-type Layer = { base: number; weight: number; speed: number; phase: number };
+type Layer = { base: number; weight: number; speed: number; phase: number; wScale: number };
 
 const LAYERS: Layer[] = [
-    { base: -0.42, weight: 0.9, speed: 0.42, phase: 0.0 },
-    { base: -0.14, weight: 1.0, speed: 0.5, phase: 1.7 },
-    { base: 0.16, weight: 0.95, speed: 0.46, phase: 3.4 },
-    { base: 0.44, weight: 0.8, speed: 0.54, phase: 5.1 },
+    { base: -0.52, weight: 0.7, speed: 0.4, phase: 0.0, wScale: 0.95 },
+    { base: -0.3, weight: 0.95, speed: 0.48, phase: 1.1, wScale: 0.7 },
+    { base: -0.08, weight: 1.0, speed: 0.44, phase: 2.4, wScale: 0.6 },
+    { base: 0.14, weight: 1.0, speed: 0.5, phase: 3.5, wScale: 0.65 },
+    { base: 0.34, weight: 0.9, speed: 0.46, phase: 4.6, wScale: 0.75 },
+    { base: 0.54, weight: 0.7, speed: 0.52, phase: 5.7, wScale: 0.95 },
 ];
 
 function hash2(x: number, y: number): number {
@@ -132,7 +134,7 @@ export const AuroraBackground = () => {
                         Math.sin(Y * 3.0 + st + layer.phase) * 0.16 +
                         (fbm(Y * 1.6 + layer.phase * 3.0, st * 0.9) - 0.5) * 0.55;
                     cxRow[py * L + i] = layer.base + snake;
-                    wRow[py * L + i] = 0.07 + 0.055 * fbm(Y * 3.0 + layer.phase, st * 0.7);
+                    wRow[py * L + i] = (0.055 + 0.05 * fbm(Y * 3.0 + layer.phase, st * 0.7)) * layer.wScale;
                 }
             }
 
@@ -147,21 +149,24 @@ export const AuroraBackground = () => {
                             const dx = (X - cxRow[py * L + i]) / wRow[py * L + i];
                             inten += Math.exp(-dx * dx) * LAYERS[i].weight;
                         }
-                        // Vertical rays: higher-frequency, mostly along x, drifting
+                        // Fine vertical rays: multi-octave, mostly along x, drifting
                         // slowly and bending gently with height, with contrast so
                         // bright pleats separate with darker gaps.
                         const rn =
-                            valueNoise(X * 9.0 + t * 0.15, Y * 0.8) * 0.6 +
-                            valueNoise(X * 19.0 - t * 0.22, Y * 1.4 + 3.0) * 0.4;
-                        const ray = Math.pow(0.26 + 0.74 * rn, 1.6);
+                            valueNoise(X * 13.0 + t * 0.13, Y * 0.7) * 0.5 +
+                            valueNoise(X * 27.0 - t * 0.2, Y * 1.3 + 3.0) * 0.32 +
+                            valueNoise(X * 47.0 + 7.0, Y * 2.1 - t * 0.1) * 0.18;
+                        const ray = Math.pow(0.24 + 0.76 * rn, 1.5);
                         inten *= fade * ray;
                     }
 
                     const a = 1 - Math.exp(-inten * 2.3);
                     const idx = (py * lw + px) * 4;
-                    data[idx] = 232;
-                    data[idx + 1] = 244;
-                    data[idx + 2] = 255;
+                    // Near-white with a faint cool tint up top drifting to a hint of
+                    // green lower down (subtle spectral realism).
+                    data[idx] = 226 - 6 * Y;
+                    data[idx + 1] = 247;
+                    data[idx + 2] = 255 - 18 * Y;
                     data[idx + 3] = Math.max(0, Math.min(255, a * 255));
                 }
             }
