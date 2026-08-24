@@ -117,43 +117,69 @@ html{
   opacity: 0.9;
 }
 
-/* Soft ambient glow so the sky isn't flat black behind the ribbons */
-.aurora-ambient {
+/* 3D perspective scene so the aurora curtain appears to move through space */
+.aurora-scene {
   position: absolute;
-  inset: -10%;
-  background:
-    radial-gradient(45% 40% at 42% 22%, rgba(214, 233, 255, 0.28), rgba(255, 255, 255, 0) 70%),
-    radial-gradient(40% 45% at 68% 30%, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 72%);
-  mix-blend-mode: screen;
-  filter: blur(30px);
-  animation: aurora-ambient 14s ease-in-out infinite alternate;
+  inset: 0;
+  perspective: 1100px;
+  perspective-origin: 50% 34%;
 }
 
-@keyframes aurora-ambient {
-  0%   { transform: translate3d(-3%, -2%, 0) scale(1);    opacity: 0.55; }
-  100% { transform: translate3d(4%, 3%, 0)   scale(1.12); opacity: 0.85; }
-}
-
-/* Shimmering, waving white aurora lines */
+/* Shimmering, waving white aurora curtain */
 .aurora-lines {
   position: absolute;
-  top: -12%;
-  left: -12%;
-  width: 124%;
-  height: 124%;
+  top: -8%;
+  left: -8%;
+  width: 116%;
+  height: 116%;
   mix-blend-mode: screen;
-  transform: rotate(-9deg);
-  transform-origin: 50% 40%;
+  transform-style: preserve-3d;
+  animation: aurora-rotate-3d 54s ease-in-out infinite alternate;
+}
+
+/* Slow tilt/turn under perspective -> depth and 3D movement */
+@keyframes aurora-rotate-3d {
+  0%   { transform: rotateY(-16deg) rotateX(7deg)  translateZ(-60px); }
+  50%  { transform: rotateY(6deg)   rotateX(-2deg) translateZ(40px); }
+  100% { transform: rotateY(18deg)  rotateX(6deg)  translateZ(-30px); }
 }
 
 .aurora-lines-group {
-  animation: aurora-sway 18s ease-in-out infinite alternate;
-  transform-origin: 50% 40%;
+  animation: aurora-sway 66s ease-in-out infinite alternate;
+  transform-origin: 50% 42%;
 }
 
 @keyframes aurora-sway {
-  0%   { transform: translate3d(-2.5%, 0, 0) rotate(-2deg); }
-  100% { transform: translate3d(2.5%, 0, 0)  rotate(2deg); }
+  0%   { transform: translate3d(-1.5%, 0, 0) rotate(-1.5deg); }
+  100% { transform: translate3d(1.5%, 0, 0)  rotate(1.5deg); }
+}
+
+/* Per-ribbon horizontal drift at staggered speeds -> parallax between curtains */
+.aurora-ribbon {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation-name: aurora-ribbon-drift;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
+@keyframes aurora-ribbon-drift {
+  0%   { transform: translateX(-9px) scale(0.98); }
+  100% { transform: translateX(11px) scale(1.03); }
+}
+
+/* Hazy white glow between the ribbons */
+.aurora-haze {
+  transform-box: fill-box;
+  transform-origin: center;
+  mix-blend-mode: screen;
+  animation: aurora-haze 34s ease-in-out infinite alternate;
+}
+
+@keyframes aurora-haze {
+  0%   { opacity: 0.6;  transform: scale(1)    translateX(-2%); }
+  100% { opacity: 0.95; transform: scale(1.14) translateX(3%); }
 }
 
 /* Faint starfield for night-sky depth */
@@ -179,8 +205,10 @@ html{
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .aurora-ambient,
+  .aurora-lines,
   .aurora-lines-group,
+  .aurora-ribbon,
+  .aurora-haze,
   .aurora-lines-group * {
     animation: none;
   }
