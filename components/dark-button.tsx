@@ -7,13 +7,16 @@ export const DarkButton = () => {
     const [dark, setDark] = useState(true);
 
     useEffect(() => {
-        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        // The white-aurora prototype defaults to the dark theme when the visitor
+        // has no explicitly stored preference.
+        const isDark = 'theme' in localStorage ? localStorage.theme === 'dark' : true;
+        if (isDark) {
             document.documentElement.classList.add('dark');
         } else {
             document.documentElement.classList.remove('dark');
         }
 
-        setDark(!(localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)))
+        setDark(!isDark)
     }, [dark])
 
     const toggleDark = () => {
@@ -26,7 +29,7 @@ export const DarkButton = () => {
         <Tooltip>
             <TooltipTrigger asChild>
                 <button onClick={toggleDark} className="h-6 w-6 hover:cursor-pointer text-foreground/60 transition-all ease-in-out duration-300 hover:text-foreground/90">
-                        {dark ? <MoonIcon className="text-violet-950/70 opacity-60 hover:opacity-100 h-6 w-6" /> : <SunIcon className="text-secondary-foreground opacity-60 hover:opacity-100 h-6 w-6" />}
+                        {dark ? <MoonIcon className="text-foreground opacity-60 hover:opacity-100 h-6 w-6" /> : <SunIcon className="text-foreground opacity-60 hover:opacity-100 h-6 w-6" />}
                 </button>
             </TooltipTrigger>
             <TooltipContent className="bg-foreground m-1">

@@ -1,3 +1,4 @@
+import { AuroraBackground } from '@/components/aurora-background';
 import { CursorGradient } from '@/components/cursor-gradient';
 import { Nav } from '@/components/nav';
 import { Socials } from '@/components/socials';
@@ -32,12 +33,13 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className="dark" suppressHydrationWarning>
       <head />
-      <body className={cn("min-h-screen font-sans bg-primary/5 dark:bg-background leading-relaxed text-foreground antialiased selection:bg-secondary selection:text-secondary-foreground transition-all duration-300 ease-in-out", inter.variable)}>
+      <body className={cn("min-h-screen font-sans bg-background leading-relaxed text-foreground antialiased selection:bg-secondary selection:text-secondary-foreground transition-all duration-300 ease-in-out", inter.variable)}>
+        <AuroraBackground />
         <CursorGradient />
         {/* <div className="pointer-events-none fixed inset-0 z-30 transition duration-300" style={{ background: "radial-gradient(600px at 557px 134px, rgba(150, 0, 255, 0.15), transparent 90%)" }}></div>  */}
-        <div className="mx-auto min-h-screen max-w-screen-xl px-6 py-12 md:px-12 md:py-20 lg:px-24 lg:py-0">
+        <div className="relative z-10 mx-auto min-h-screen max-w-screen-xl px-6 py-12 md:px-12 md:py-20 lg:px-24 lg:py-0">
           <div className="lg:flex lg:justify-between lg:gap-4">
             {/* <div className="fixed lg:inset-0 lg:right-[55%] bg-zinc-900 dark:bg-foreground/5" /> */}
             <div className="fixed-profile">
