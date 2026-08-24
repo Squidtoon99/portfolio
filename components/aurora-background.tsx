@@ -102,8 +102,8 @@ export const AuroraBackground = () => {
             const aspect = lw / lh;
             const data = img.data;
 
-            // The whole ribbon sweeps horizontally across the screen.
-            const sweep = Math.sin(t * 0.07) * 0.55 + Math.sin(t * 0.031 + 1.3) * 0.12;
+            // The whole (wide) ribbon drifts slowly and gently across the screen.
+            const sweep = Math.sin(t * 0.03) * 0.2 + Math.sin(t * 0.014 + 1.3) * 0.06;
 
             // Per-row ribbon centre / width / vertical fade.
             const cxRow = new Float32Array(lh);
@@ -112,9 +112,10 @@ export const AuroraBackground = () => {
             for (let py = 0; py < lh; py++) {
                 const Y = py / lh;
                 const snake =
-                    Math.sin(Y * 2.6 + t * 0.35) * 0.16 + (fbm(Y * 1.5 + 4.0, t * 0.35) - 0.5) * 0.5;
+                    Math.sin(Y * 2.2 + t * 0.13) * 0.14 + (fbm(Y * 1.3 + 4.0, t * 0.13) - 0.5) * 0.4;
                 cxRow[py] = sweep + snake;
-                wRow[py] = 0.1 + 0.05 * fbm(Y * 3.0, t * 0.5);
+                // Wide ribbon that spans most of the screen.
+                wRow[py] = 0.46 + 0.12 * fbm(Y * 2.4, t * 0.18);
                 // Full opacity at the top, dissolving to nothing by FADE_END.
                 fadeRow[py] = Math.pow(Math.max(0, 1 - Y / FADE_END), FADE_CURVE);
             }
@@ -136,9 +137,9 @@ export const AuroraBackground = () => {
                             // frame, so the "lines" travel with the ribbon.
                             const lx = X - cx;
                             const rn =
-                                valueNoise(lx * 34.0 + t * 0.08, Y * 0.8) * 0.55 +
-                                valueNoise(lx * 66.0 - t * 0.13, Y * 1.4 + 3.0) * 0.3 +
-                                valueNoise(lx * 104.0 + 7.0, Y * 2.0) * 0.15;
+                                valueNoise(lx * 20.0 + t * 0.04, Y * 0.8) * 0.55 +
+                                valueNoise(lx * 40.0 - t * 0.07, Y * 1.4 + 3.0) * 0.3 +
+                                valueNoise(lx * 66.0 + 7.0, Y * 2.0) * 0.15;
                             const ray = Math.pow(0.32 + 0.68 * rn, 1.4);
                             inten = band * fade * ray;
                         }
