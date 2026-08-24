@@ -118,7 +118,7 @@ export const Experience = () => {
                                 })}
                             </ul>
                             <CardFooter className="hidden lg:flex lg:flex-wrap p-0 mt-2">
-                                {tags.map(tag => (<Tag name={tag}  key={tag} className="z-40 mouse-pointer mr-1.5 leading-snug mt-2 text-xs font-medium dark:bg-primary/25 dark:text-primary bg-primary text-primary/25 rounded-full text-center px-2 py-1"/>))}
+                                {tags.map(tag => (<Tag name={tag}  key={tag} className="z-40 mouse-pointer mr-1.5 leading-snug mt-2 text-xs font-medium dark:bg-primary/25 dark:text-primary bg-primary text-primary-foreground rounded-full text-center px-2 py-1"/>))}
                             </CardFooter>
                         </CardContent>
                     </Card>
