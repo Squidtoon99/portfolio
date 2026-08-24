@@ -22,16 +22,21 @@ import { useEffect, useRef } from "react";
  * content; renders a single static frame under prefers-reduced-motion.
  */
 
-type Layer = { base: number; weight: number; speed: number; phase: number; wScale: number };
+// fadeEnd controls how far down the layer survives before dissolving to nothing
+// (full opacity at the top, 0 by Y = fadeEnd). Varying it per layer makes the
+// curtains fade out at different "speeds"/heights.
+type Layer = { base: number; weight: number; speed: number; phase: number; wScale: number; fadeEnd: number };
 
 const LAYERS: Layer[] = [
-    { base: -0.52, weight: 0.7, speed: 0.4, phase: 0.0, wScale: 0.95 },
-    { base: -0.3, weight: 0.95, speed: 0.48, phase: 1.1, wScale: 0.7 },
-    { base: -0.08, weight: 1.0, speed: 0.44, phase: 2.4, wScale: 0.6 },
-    { base: 0.14, weight: 1.0, speed: 0.5, phase: 3.5, wScale: 0.65 },
-    { base: 0.34, weight: 0.9, speed: 0.46, phase: 4.6, wScale: 0.75 },
-    { base: 0.54, weight: 0.7, speed: 0.52, phase: 5.7, wScale: 0.95 },
+    { base: -0.52, weight: 0.7, speed: 0.4, phase: 0.0, wScale: 0.95, fadeEnd: 0.55 },
+    { base: -0.3, weight: 0.95, speed: 0.48, phase: 1.1, wScale: 0.7, fadeEnd: 0.92 },
+    { base: -0.08, weight: 1.0, speed: 0.44, phase: 2.4, wScale: 0.6, fadeEnd: 0.68 },
+    { base: 0.14, weight: 1.0, speed: 0.5, phase: 3.5, wScale: 0.65, fadeEnd: 1.0 },
+    { base: 0.34, weight: 0.9, speed: 0.46, phase: 4.6, wScale: 0.75, fadeEnd: 0.6 },
+    { base: 0.54, weight: 0.7, speed: 0.52, phase: 5.7, wScale: 0.95, fadeEnd: 0.8 },
 ];
+
+const FADE_CURVE = 1.25;
 
 function hash2(x: number, y: number): number {
     const n = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
@@ -64,11 +69,6 @@ function fbm(x: number, y: number): number {
         amp *= 0.55;
     }
     return value;
-}
-
-function smoothstep(edge0: number, edge1: number, x: number): number {
-    const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)));
-    return t * t * (3 - 2 * t);
 }
 
 export const AuroraBackground = () => {
@@ -122,13 +122,12 @@ export const AuroraBackground = () => {
             const L = LAYERS.length;
             const cxRow = new Float32Array(lh * L);
             const wRow = new Float32Array(lh * L);
-            const vFade = new Float32Array(lh);
+            const fadeRow = new Float32Array(lh * L);
+            const ambFade = new Float32Array(lh);
+            const rowMax = new Float32Array(lh);
             for (let py = 0; py < lh; py++) {
                 const Y = py / lh;
-                // Bright near the top (ceiling ~ upper area), fading downward, with
-                // a brighter "corona" band where the curtains originate.
-                const ridge = 1 + 0.9 * Math.exp(-(((Y - 0.09) / 0.06) ** 2));
-                vFade[py] = smoothstep(0, 0.05, Y) * Math.max(0, 1 - Y / 0.66) * ridge;
+                let mx = 0;
                 for (let i = 0; i < L; i++) {
                     const layer = LAYERS[i];
                     const st = t * layer.speed;
@@ -137,24 +136,32 @@ export const AuroraBackground = () => {
                         (fbm(Y * 1.6 + layer.phase * 3.0, st * 0.9) - 0.5) * 0.55;
                     cxRow[py * L + i] = layer.base + snake;
                     wRow[py * L + i] = (0.055 + 0.05 * fbm(Y * 3.0 + layer.phase, st * 0.7)) * layer.wScale;
+                    // Full opacity at the top, dissolving to nothing at Y = fadeEnd.
+                    const f = Math.pow(Math.max(0, 1 - Y / layer.fadeEnd), FADE_CURVE);
+                    fadeRow[py * L + i] = f;
+                    if (f > mx) mx = f;
                 }
+                // The ambient haze fades on its own, gentler curve.
+                ambFade[py] = Math.pow(Math.max(0, 1 - Y / 0.78), 1.15);
+                if (ambFade[py] > mx) mx = ambFade[py];
+                rowMax[py] = mx;
             }
 
             for (let py = 0; py < lh; py++) {
                 const Y = py / lh;
-                const fade = vFade[py];
+                const alive = rowMax[py] > 0.002;
                 for (let px = 0; px < lw; px++) {
                     const X = (px / lw - 0.5) * aspect;
                     let inten = 0;
-                    if (fade > 0.001) {
+                    if (alive) {
                         for (let i = 0; i < L; i++) {
                             const dx = (X - cxRow[py * L + i]) / wRow[py * L + i];
-                            inten += Math.exp(-dx * dx) * LAYERS[i].weight;
+                            inten += Math.exp(-dx * dx) * LAYERS[i].weight * fadeRow[py * L + i];
                         }
                         // Broad ambient haze across the centre so the rays sit on a
                         // continuous glow rather than isolated columns.
                         const ax = X * 0.85;
-                        inten += Math.exp(-ax * ax) * 0.4;
+                        inten += Math.exp(-ax * ax) * 0.4 * ambFade[py];
                         // Fine vertical rays: multi-octave, mostly along x, drifting
                         // slowly and bending gently with height, with contrast so
                         // bright pleats separate with darker gaps.
@@ -163,7 +170,7 @@ export const AuroraBackground = () => {
                             valueNoise(X * 26.0 - t * 0.11, Y * 1.3 + 3.0) * 0.32 +
                             valueNoise(X * 46.0 + 7.0, Y * 2.0) * 0.18;
                         const ray = Math.pow(0.3 + 0.7 * rn, 1.35);
-                        inten *= fade * ray;
+                        inten *= ray;
                     }
 
                     const a = 1 - Math.exp(-inten * 2.5);
