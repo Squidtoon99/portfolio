@@ -2,11 +2,11 @@
  * "White aurora borealis" backdrop.
  *
  * Layers, from back to front:
- *   1. An optional real-footage video layer. Drop a file at `public/aurora-bg.mp4`
- *      (e.g. the referenced white-aurora clip) and it is used automatically; when
- *      the file is absent the <video> simply renders nothing and the animated
- *      layers below act as the fallback.
- *   2. Animated SVG aurora curtains inside a 3D perspective scene:
+ *   1. A real-footage white-aurora video (defaults to the bundled
+ *      `public/aurora-bg.mp4`; override with NEXT_PUBLIC_AURORA_VIDEO_SRC), with
+ *      a dark scrim on top so white foreground text stays legible.
+ *   2. Animated SVG aurora curtains inside a 3D perspective scene, layered over
+ *      the footage for extra life:
  *        - a soft hazy white glow that sits between the ribbons, and
  *        - thin luminous white "ribbons" whose paths morph (wave) and whose
  *          opacity pulses (shimmer).
@@ -18,7 +18,7 @@
  * and every motion is slow. Fixed, non-interactive, behind all page content.
  */
 
-const AURORA_VIDEO_SRC = "/aurora-bg.mp4";
+const AURORA_VIDEO_SRC = process.env.NEXT_PUBLIC_AURORA_VIDEO_SRC ?? "/aurora-bg.mp4";
 
 type Ribbon = {
     x: number;
@@ -62,6 +62,7 @@ export const AuroraBackground = () => {
             <video className="aurora-video" autoPlay muted loop playsInline preload="auto">
                 <source src={AURORA_VIDEO_SRC} type="video/mp4" />
             </video>
+            <div className="aurora-video-scrim" />
 
             <div className="aurora-scene">
                 <svg

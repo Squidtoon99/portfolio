@@ -107,14 +107,23 @@ html{
     radial-gradient(130% 90% at 50% -15%, #0d1730 0%, #080c1c 48%, #04050e 80%, #020207 100%);
 }
 
-/* Optional real-footage backdrop (public/aurora-bg.mp4). Absent file -> transparent. */
+/* Real-footage backdrop (public/aurora-bg.mp4 by default) */
 .aurora-video {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.9;
+  opacity: 0.95;
+}
+
+/* Dark scrim over the footage so white foreground text stays legible */
+.aurora-video-scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(3, 5, 14, 0.5) 0%, rgba(3, 5, 14, 0.34) 42%, rgba(2, 3, 10, 0.72) 100%),
+    radial-gradient(125% 95% at 50% 16%, transparent 38%, rgba(2, 3, 10, 0.62) 100%);
 }
 
 /* 3D perspective scene so the aurora curtain appears to move through space */
@@ -132,6 +141,7 @@ html{
   left: -8%;
   width: 116%;
   height: 116%;
+  opacity: 0.55;
   mix-blend-mode: screen;
   transform-style: preserve-3d;
   animation: aurora-rotate-3d 54s ease-in-out infinite alternate;
