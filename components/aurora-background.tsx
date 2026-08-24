@@ -125,8 +125,10 @@ export const AuroraBackground = () => {
             const vFade = new Float32Array(lh);
             for (let py = 0; py < lh; py++) {
                 const Y = py / lh;
-                // Bright near the top (ceiling ~ upper area), fading downward.
-                vFade[py] = smoothstep(0, 0.06, Y) * Math.max(0, 1 - Y / 0.62);
+                // Bright near the top (ceiling ~ upper area), fading downward, with
+                // a brighter "corona" band where the curtains originate.
+                const ridge = 1 + 0.9 * Math.exp(-(((Y - 0.09) / 0.06) ** 2));
+                vFade[py] = smoothstep(0, 0.05, Y) * Math.max(0, 1 - Y / 0.66) * ridge;
                 for (let i = 0; i < L; i++) {
                     const layer = LAYERS[i];
                     const st = t * layer.speed;
@@ -149,6 +151,10 @@ export const AuroraBackground = () => {
                             const dx = (X - cxRow[py * L + i]) / wRow[py * L + i];
                             inten += Math.exp(-dx * dx) * LAYERS[i].weight;
                         }
+                        // Broad ambient haze across the centre so the rays sit on a
+                        // continuous glow rather than isolated columns.
+                        const ax = X * 0.85;
+                        inten += Math.exp(-ax * ax) * 0.4;
                         // Fine vertical rays: multi-octave, mostly along x, drifting
                         // slowly and bending gently with height, with contrast so
                         // bright pleats separate with darker gaps.
@@ -156,11 +162,11 @@ export const AuroraBackground = () => {
                             valueNoise(X * 13.0 + t * 0.13, Y * 0.7) * 0.5 +
                             valueNoise(X * 27.0 - t * 0.2, Y * 1.3 + 3.0) * 0.32 +
                             valueNoise(X * 47.0 + 7.0, Y * 2.1 - t * 0.1) * 0.18;
-                        const ray = Math.pow(0.24 + 0.76 * rn, 1.5);
+                        const ray = Math.pow(0.3 + 0.7 * rn, 1.35);
                         inten *= fade * ray;
                     }
 
-                    const a = 1 - Math.exp(-inten * 2.3);
+                    const a = 1 - Math.exp(-inten * 2.5);
                     const idx = (py * lw + px) * 4;
                     // Near-white with a faint cool tint up top drifting to a hint of
                     // green lower down (subtle spectral realism).
