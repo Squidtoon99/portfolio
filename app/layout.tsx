@@ -45,7 +45,7 @@ export default function RootLayout({
             <div className="fixed-profile">
               <header className="lg:sticky lg:top-0 lg:flex lg:max-h-screen lg:w-full lg:pr-4 lg:pl-8 lg:flex-col lg:justify-between lg:py-24 lg:text-foreground dark:lg:text-foreground">
                 <div>
-                  <h1 className="text-4xl inline-flex sm:text-6xl font-bold group-hover:tracking-wide transition-all ease-in-out duration-300">
+                  <h1 className="liquid-glass-text text-4xl inline-block sm:text-6xl font-bold group-hover:tracking-wide transition-all ease-in-out duration-300">
                     Arjun Nayak
                   </h1>
                   <h2 className="mt-3 text-lg font-medium tracking-tight text-foreground sm:text-xl">TIP Intern @ Capital One</h2>
