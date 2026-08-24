@@ -159,9 +159,9 @@ export const AuroraBackground = () => {
                         // slowly and bending gently with height, with contrast so
                         // bright pleats separate with darker gaps.
                         const rn =
-                            valueNoise(X * 13.0 + t * 0.13, Y * 0.7) * 0.5 +
-                            valueNoise(X * 27.0 - t * 0.2, Y * 1.3 + 3.0) * 0.32 +
-                            valueNoise(X * 47.0 + 7.0, Y * 2.1 - t * 0.1) * 0.18;
+                            valueNoise(X * 12.0 + t * 0.07, Y * 0.7) * 0.5 +
+                            valueNoise(X * 26.0 - t * 0.11, Y * 1.3 + 3.0) * 0.32 +
+                            valueNoise(X * 46.0 + 7.0, Y * 2.0) * 0.18;
                         const ray = Math.pow(0.3 + 0.7 * rn, 1.35);
                         inten *= fade * ray;
                     }
