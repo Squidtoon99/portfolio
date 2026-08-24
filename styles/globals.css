@@ -112,12 +112,11 @@ html{
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(60% 32% at 50% 2%, rgba(236, 245, 255, 0.72), rgba(214, 233, 255, 0.24) 46%, rgba(255, 255, 255, 0) 72%),
-    radial-gradient(32% 18% at 41% 1%, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0) 70%),
-    radial-gradient(28% 18% at 62% 2%, rgba(214, 245, 226, 0.36), rgba(255, 255, 255, 0) 72%);
+    radial-gradient(46% 18% at 50% 1%, rgba(236, 245, 255, 0.5), rgba(214, 233, 255, 0.16) 46%, rgba(255, 255, 255, 0) 72%),
+    radial-gradient(22% 12% at 44% 0%, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0) 70%);
   mix-blend-mode: screen;
-  filter: blur(10px);
-  animation: aurora-glow-pulse 22s ease-in-out infinite alternate;
+  filter: blur(8px);
+  animation: aurora-glow-pulse 18s ease-in-out infinite alternate;
 }
 
 @keyframes aurora-glow-pulse {

@@ -82,9 +82,9 @@ export const AuroraBackground = () => {
             phaseX: Math.random() * Math.PI * 2,
             phaseY: Math.random() * Math.PI * 2,
             phaseZ: Math.random() * Math.PI * 2,
-            speedX: 0.05 + Math.random() * 0.07,
-            speedY: 0.04 + Math.random() * 0.06,
-            speedZ: 0.05 + Math.random() * 0.08,
+            speedX: 0.13 + Math.random() * 0.12,
+            speedY: 0.11 + Math.random() * 0.12,
+            speedZ: 0.14 + Math.random() * 0.16,
             tint: Math.random(),
         }));
 
@@ -98,10 +98,10 @@ export const AuroraBackground = () => {
 
             // Ridge control points in a fake-3D space (screen x/y + depth z).
             const pts = controls.map((c) => {
-                const spread = (c.baseX - 0.5) * width * 1.15;
-                const jitterX = smoothNoise(t, c.phaseX, c.speedX) * width * 0.065;
-                const jitterY = smoothNoise(t, c.phaseY, c.speedY) * height * 0.045;
-                const depth = smoothNoise(t, c.phaseZ, c.speedZ) * 300;
+                const spread = (c.baseX - 0.5) * width * 1.05;
+                const jitterX = smoothNoise(t, c.phaseX, c.speedX) * width * 0.09;
+                const jitterY = smoothNoise(t, c.phaseY, c.speedY) * height * 0.05;
+                const depth = smoothNoise(t, c.phaseZ, c.speedZ) * 380;
                 return { x: cx + spread + jitterX, y: ridgeY + jitterY, z: depth, tint: c.tint };
             });
 
@@ -126,26 +126,34 @@ export const AuroraBackground = () => {
                 const px = cx + (rx - cx) * scale;
                 const py = ry;
 
-                // Per-beam shimmer + a little length variation.
-                const shimmer = 0.6 + 0.4 * Math.sin(f * 46 + t * 1.4 + tint * 6.283);
-                const length = height * (0.4 + 0.2 * scale) * (0.85 + 0.15 * Math.sin(f * 22 - t));
-                const lineWidth = Math.max(0.5, 2.4 * scale);
-                const alpha = 0.19 * scale * shimmer;
+                // Fast per-beam twinkle plus a slower brightness wave that travels
+                // along the curtain, so the folds visibly flow.
+                const twinkle = 0.6 + 0.4 * Math.sin(f * 46 + t * 2.6 + tint * 6.283);
+                const flow = 0.45 + 0.55 * Math.sin(f * 7 - t * 0.9);
+                const shimmer = twinkle * flow;
+                const length = height * (0.42 + 0.22 * scale) * (0.85 + 0.15 * Math.sin(f * 22 - t));
+                const lineWidth = Math.max(0.6, 2.6 * scale);
+                const alpha = 0.34 * scale * shimmer;
 
                 const green = 200 + Math.round(40 * tint);
                 const blue = 235 + Math.round(20 * (1 - tint));
 
                 const grad = ctx.createLinearGradient(px, py, px, py + length);
                 grad.addColorStop(0, "rgba(255,255,255,0)");
-                grad.addColorStop(0.06, `rgba(${230},${green + 20},255,${alpha * 1.25})`);
+                grad.addColorStop(0.06, `rgba(${232},${green + 20},255,${Math.min(1, alpha * 1.3)})`);
                 grad.addColorStop(0.45, `rgba(255,255,255,${alpha})`);
                 grad.addColorStop(1, `rgba(210,${green},${blue},0)`);
 
                 ctx.strokeStyle = grad;
-                ctx.lineWidth = lineWidth;
                 ctx.beginPath();
                 ctx.moveTo(px, py);
                 ctx.lineTo(px, py + length);
+                // Soft outer glow, then a brighter core -> luminous beams.
+                ctx.lineWidth = lineWidth * 3.2;
+                ctx.globalAlpha = 0.4;
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+                ctx.lineWidth = lineWidth;
                 ctx.stroke();
             }
 
