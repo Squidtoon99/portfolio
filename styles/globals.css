@@ -107,30 +107,12 @@ html{
     radial-gradient(130% 95% at 50% -18%, #0e1a34 0%, #0a1226 42%, #05070f 78%, #020207 100%);
 }
 
-/* Bright hazy "source" the light pillars fall from, near top-centre */
-.aurora-glow {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(46% 18% at 50% 1%, rgba(236, 245, 255, 0.5), rgba(214, 233, 255, 0.16) 46%, rgba(255, 255, 255, 0) 72%),
-    radial-gradient(22% 12% at 44% 0%, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0) 70%);
-  mix-blend-mode: screen;
-  filter: blur(8px);
-  animation: aurora-glow-pulse 18s ease-in-out infinite alternate;
-}
-
-@keyframes aurora-glow-pulse {
-  0%   { opacity: 0.75; transform: translateX(-1.5%) scale(1); }
-  100% { opacity: 1;    transform: translateX(2%)    scale(1.06); }
-}
-
-/* Canvas that draws the spline-driven, folding aurora beams */
+/* Canvas that draws the noise-driven aurora curtains */
 .aurora-canvas {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  mix-blend-mode: screen;
 }
 
 /* Faint starfield for night-sky depth */
@@ -185,7 +167,6 @@ html{
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .aurora-glow,
   .liquid-glass-text {
     animation: none;
   }

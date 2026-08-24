@@ -5,64 +5,68 @@ import { useEffect, useRef } from "react";
 /**
  * Canvas "white aurora borealis" backdrop.
  *
- * Renders a few smooth, wavy light *ribbons* (rather than discrete beams). Each
- * ribbon's top edge is a Catmull-Rom spline whose control points drift with
- * gentle low-frequency noise — with strong variation on the y-axis so the ridge
- * undulates up and down — while a soft curtain hangs below it. Ribbons are
- * fanned (their bottoms spread wider than their tops) so the curtain reads as if
- * seen from below, looking *up* at the aurora, while the page text stays flat in
- * front of it.
+ * Uses the classic shader technique for auroras, adapted to 2D canvas:
+ *   - Several curtain layers whose horizontal centre "snakes" as a function of
+ *     height + time (summed sines + fBm value noise), so the ribbons flow.
+ *   - Each curtain is a Gaussian band across x: a bright core that fades softly
+ *     to haze on both sides (haze -> line -> haze). The band width varies along
+ *     height, so some stretches read as a crisp ribbon and others as soft haze.
+ *   - A vertical falloff (bright ceiling near the top, exponential fade down)
+ *     plus fBm "pleats" give vertical structure.
+ *   - Layers are summed (additive) and tone-mapped to white with a faint cool
+ *     tint.
  *
- * All motion uses small, near-uniform angular speeds so it stays slow and steady
- * the whole time (never speeds up). Fixed, non-interactive, behind all content;
- * renders a single static frame under prefers-reduced-motion.
+ * For smoothness + performance the field is computed on a small offscreen buffer
+ * and upscaled with bilinear smoothing (which doubles as the blur). All motion
+ * uses small, constant speeds so it stays slow and steady. Fixed and behind all
+ * content; renders a single static frame under prefers-reduced-motion.
  */
 
-const CONTROL_POINTS = 6;
-const SAMPLES = 130;
-
-type Layer = {
-    baseY: number;
-    yAmp: number;
-    height: number;
-    fan: number;
-    blur: number;
-    alpha: number;
-    hue: string;
-    speed: number;
-    phase: number;
-};
+type Layer = { base: number; weight: number; speed: number; phase: number };
 
 const LAYERS: Layer[] = [
-    { baseY: 0.2, yAmp: 0.12, height: 0.34, fan: 1.42, blur: 16, alpha: 0.16, hue: "225, 242, 255", speed: 0.9, phase: 0.0 },
-    { baseY: 0.15, yAmp: 0.15, height: 0.3, fan: 1.3, blur: 11, alpha: 0.2, hue: "255, 255, 255", speed: 1.0, phase: 2.3 },
-    { baseY: 0.25, yAmp: 0.1, height: 0.24, fan: 1.18, blur: 8, alpha: 0.15, hue: "216, 255, 236", speed: 1.1, phase: 4.6 },
+    { base: -0.42, weight: 0.9, speed: 0.42, phase: 0.0 },
+    { base: -0.14, weight: 1.0, speed: 0.5, phase: 1.7 },
+    { base: 0.16, weight: 0.95, speed: 0.46, phase: 3.4 },
+    { base: 0.44, weight: 0.8, speed: 0.54, phase: 5.1 },
 ];
 
-type Control = {
-    baseX: number;
-    baseYOff: number;
-    phaseX: number;
-    phaseY: number;
-    speedX: number;
-    speedY: number;
-};
-
-/** Two summed low-frequency sines -> smooth, steady, slow motion (no speed-ups). */
-function smoothNoise(t: number, phase: number, speed: number): number {
-    return Math.sin(t * speed + phase) * 0.6 + Math.sin(t * speed * 0.6 + phase * 1.3) * 0.4;
+function hash2(x: number, y: number): number {
+    const n = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
+    return n - Math.floor(n);
 }
 
-function catmullRom(p0: number, p1: number, p2: number, p3: number, t: number): number {
-    const t2 = t * t;
-    const t3 = t2 * t;
-    return (
-        0.5 *
-        (2 * p1 +
-            (-p0 + p2) * t +
-            (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 +
-            (-p0 + 3 * p1 - 3 * p2 + p3) * t3)
-    );
+function valueNoise(x: number, y: number): number {
+    const xi = Math.floor(x);
+    const yi = Math.floor(y);
+    const xf = x - xi;
+    const yf = y - yi;
+    const u = xf * xf * (3 - 2 * xf);
+    const v = yf * yf * (3 - 2 * yf);
+    const a = hash2(xi, yi);
+    const b = hash2(xi + 1, yi);
+    const c = hash2(xi, yi + 1);
+    const d = hash2(xi + 1, yi + 1);
+    return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+}
+
+function fbm(x: number, y: number): number {
+    let value = 0;
+    let amp = 0.5;
+    let px = x;
+    let py = y;
+    for (let i = 0; i < 4; i++) {
+        value += amp * valueNoise(px, py);
+        px = px * 1.9 + 3.0;
+        py = py * 1.9 + 1.7;
+        amp *= 0.55;
+    }
+    return value;
+}
+
+function smoothstep(edge0: number, edge1: number, x: number): number {
+    const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)));
+    return t * t * (3 - 2 * t);
 }
 
 export const AuroraBackground = () => {
@@ -77,8 +81,15 @@ export const AuroraBackground = () => {
         const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
 
+        const off = document.createElement("canvas");
+        const offCtx = off.getContext("2d");
+        if (!offCtx) return;
+
         let width = 0;
         let height = 0;
+        let lw = 0;
+        let lh = 0;
+        let img: ImageData | null = null;
         let rafId = 0;
         let running = true;
 
@@ -88,117 +99,71 @@ export const AuroraBackground = () => {
             canvas.width = Math.max(1, Math.floor(width * dpr));
             canvas.height = Math.max(1, Math.floor(height * dpr));
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            lw = Math.max(80, Math.min(210, Math.floor(width / 6)));
+            lh = Math.max(60, Math.min(150, Math.floor(height / 6)));
+            off.width = lw;
+            off.height = lh;
+            img = offCtx.createImageData(lw, lh);
         };
         resize();
         window.addEventListener("resize", resize);
 
-        const controls: Control[] = Array.from({ length: CONTROL_POINTS }, (_, i) => ({
-            baseX: i / (CONTROL_POINTS - 1),
-            baseYOff: Math.random() * 2 - 1,
-            phaseX: Math.random() * Math.PI * 2,
-            phaseY: Math.random() * Math.PI * 2,
-            speedX: 0.09 + Math.random() * 0.03,
-            speedY: 0.08 + Math.random() * 0.03,
-        }));
-
         const draw = (nowMs: number) => {
+            if (!img) return;
             const t = nowMs / 1000;
-            ctx.clearRect(0, 0, width, height);
-            ctx.globalCompositeOperation = "lighter";
-            const cx = width / 2;
+            const aspect = lw / lh;
+            const data = img.data;
 
-            for (const layer of LAYERS) {
-                const st = t * layer.speed;
-
-                const ridge = controls.map((c) => {
-                    const x =
-                        cx +
-                        (c.baseX - 0.5) * width * 1.12 +
-                        smoothNoise(st, c.phaseX + layer.phase, c.speedX) * width * 0.06;
-                    const y =
-                        height * layer.baseY +
-                        c.baseYOff * height * 0.075 +
-                        smoothNoise(st, c.phaseY + layer.phase, c.speedY) * height * layer.yAmp;
-                    return { x, y };
-                });
-
-                const topPts: Array<[number, number]> = [];
-                const botPts: Array<[number, number]> = [];
-                for (let s = 0; s < SAMPLES; s++) {
-                    const f = s / (SAMPLES - 1);
-                    const seg = f * (CONTROL_POINTS - 1);
-                    const i = Math.min(Math.floor(seg), CONTROL_POINTS - 2);
-                    const lt = seg - i;
-                    const p0 = ridge[Math.max(0, i - 1)];
-                    const p1 = ridge[i];
-                    const p2 = ridge[i + 1];
-                    const p3 = ridge[Math.min(CONTROL_POINTS - 1, i + 2)];
-                    const X = catmullRom(p0.x, p1.x, p2.x, p3.x, lt);
-                    const Y = catmullRom(p0.y, p1.y, p2.y, p3.y, lt);
-
-                    // Taper the curtain toward the ends so the ribbon fades softly.
-                    const taper = Math.sin(Math.PI * f);
-                    const lenNoise = 0.82 + 0.18 * smoothNoise(st, f * 3 + layer.phase, 0.08);
-                    const clen = height * layer.height * (0.5 + 0.5 * taper) * lenNoise;
-                    // Fan: bottoms spread wider than tops -> "looking up" foreshortening.
-                    const bx = cx + (X - cx) * layer.fan;
-
-                    topPts.push([X, Y]);
-                    botPts.push([bx, Y + clen]);
+            // Per-row curtain centre / width / vertical fade (cheap: depends on y).
+            const L = LAYERS.length;
+            const cxRow = new Float32Array(lh * L);
+            const wRow = new Float32Array(lh * L);
+            const vFade = new Float32Array(lh);
+            for (let py = 0; py < lh; py++) {
+                const Y = py / lh;
+                // Bright near the top (ceiling ~ upper area), fading downward.
+                vFade[py] = smoothstep(0, 0.06, Y) * Math.max(0, 1 - Y / 0.62);
+                for (let i = 0; i < L; i++) {
+                    const layer = LAYERS[i];
+                    const st = t * layer.speed;
+                    const snake =
+                        Math.sin(Y * 3.0 + st + layer.phase) * 0.16 +
+                        (fbm(Y * 1.6 + layer.phase * 3.0, st * 0.9) - 0.5) * 0.55;
+                    cxRow[py * L + i] = layer.base + snake;
+                    wRow[py * L + i] = 0.085 + 0.06 * fbm(Y * 3.0 + layer.phase, st * 0.7);
                 }
-
-                const traceRidge = () => {
-                    ctx.beginPath();
-                    ctx.moveTo(topPts[0][0], topPts[0][1]);
-                    for (let i = 1; i < SAMPLES; i++) ctx.lineTo(topPts[i][0], topPts[i][1]);
-                };
-
-                // Soft curtain hanging below the ridge (downward haze).
-                ctx.filter = `blur(${layer.blur}px)`;
-                ctx.beginPath();
-                ctx.moveTo(topPts[0][0], topPts[0][1]);
-                for (let i = 1; i < SAMPLES; i++) ctx.lineTo(topPts[i][0], topPts[i][1]);
-                for (let i = SAMPLES - 1; i >= 0; i--) ctx.lineTo(botPts[i][0], botPts[i][1]);
-                ctx.closePath();
-                const gTop = height * layer.baseY - height * 0.06;
-                const gBot = height * (layer.baseY + layer.height + layer.yAmp);
-                const body = ctx.createLinearGradient(0, gTop, 0, gBot);
-                body.addColorStop(0, `rgba(${layer.hue}, 0)`);
-                body.addColorStop(0.14, `rgba(${layer.hue}, ${layer.alpha * 0.6})`);
-                body.addColorStop(0.55, `rgba(${layer.hue}, ${layer.alpha * 0.3})`);
-                body.addColorStop(1, `rgba(${layer.hue}, 0)`);
-                ctx.fillStyle = body;
-                ctx.fill();
-
-                // Wide soft haze around the ridge -> the outer part of the
-                // haze -> line -> haze cross-profile.
-                traceRidge();
-                ctx.strokeStyle = `rgba(${layer.hue}, ${layer.alpha * 0.55})`;
-                ctx.lineWidth = 20;
-                ctx.lineJoin = "round";
-                ctx.lineCap = "round";
-                ctx.stroke();
-
-                // Bright core line whose strength varies slowly along the length:
-                // some stretches read as a crisp white ribbon, others fade to just
-                // haze. The bright regions drift over time so folds travel.
-                const core = ctx.createLinearGradient(0, 0, width, 0);
-                const STOPS = 12;
-                for (let k = 0; k <= STOPS; k++) {
-                    const gx = k / STOPS;
-                    const n = smoothNoise(st, gx * 6 + layer.phase, 0.1);
-                    const strength = Math.max(0, (n + 0.25) / 1.25);
-                    const a = Math.min(1, layer.alpha * 2 * strength);
-                    core.addColorStop(gx, `rgba(${layer.hue}, ${a})`);
-                }
-                ctx.filter = "blur(2px)";
-                traceRidge();
-                ctx.strokeStyle = core;
-                ctx.lineWidth = 2.2;
-                ctx.stroke();
-
-                ctx.filter = "none";
             }
+
+            for (let py = 0; py < lh; py++) {
+                const Y = py / lh;
+                const fade = vFade[py];
+                for (let px = 0; px < lw; px++) {
+                    const X = (px / lw - 0.5) * aspect;
+                    let inten = 0;
+                    if (fade > 0.001) {
+                        // Vertical "pleats" so the curtain has ray structure.
+                        const pleat = 0.55 + 0.45 * fbm(X * 3.2 + t * 0.25, Y * 4.0 - t * 0.5);
+                        for (let i = 0; i < L; i++) {
+                            const dx = (X - cxRow[py * L + i]) / wRow[py * L + i];
+                            const band = Math.exp(-dx * dx);
+                            inten += band * LAYERS[i].weight;
+                        }
+                        inten *= fade * pleat;
+                    }
+
+                    const a = 1 - Math.exp(-inten * 1.7);
+                    const idx = (py * lw + px) * 4;
+                    data[idx] = 232;
+                    data[idx + 1] = 244;
+                    data[idx + 2] = 255;
+                    data[idx + 3] = Math.max(0, Math.min(255, a * 255));
+                }
+            }
+
+            offCtx.putImageData(img, 0, 0);
+            ctx.clearRect(0, 0, width, height);
+            ctx.imageSmoothingEnabled = true;
+            ctx.drawImage(off, 0, 0, lw, lh, 0, 0, width, height);
 
             if (running && !reduceMotion) {
                 rafId = requestAnimationFrame(draw);
@@ -220,7 +185,6 @@ export const AuroraBackground = () => {
 
     return (
         <div aria-hidden="true" className="aurora-root pointer-events-none fixed inset-0 z-0 overflow-hidden">
-            <div className="aurora-glow" />
             <canvas ref={canvasRef} className="aurora-canvas" />
             <div className="aurora-stars" />
             <div className="aurora-vignette" />
